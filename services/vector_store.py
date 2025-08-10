@@ -47,6 +47,7 @@ def query_text(query, top_k=5):
     results = index.query(
         vector=query_embedding,
         top_k=top_k,
-        include_metadata=True
+        include_metadata=True,
+        namespace="default"
     )
     return results

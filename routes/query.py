@@ -15,23 +15,36 @@ def query_documents():
 
         # Retrieve results from Pinecone
         results = query_text(query, top_k)
+        # Debug: print raw Pinecone results
+        print("Pinecone raw results:", results)
 
-        # Format output
-        sources = [
-            {
+        # Format output and prepare context for LLM
+        sources = []
+        context_chunks = []
+        for match in results["matches"]:
+            sources.append({
                 "score": match["score"],
                 "source": match["metadata"].get("source"),
                 "page": match["metadata"].get("page", None),
                 "chunk_id": match["metadata"].get("chunk_id"),
                 "text": match["metadata"].get("text")
-            }
-            for match in results["matches"]
-        ]
+            })
+            # Prepare a chunk-like object for LLM
+            class Chunk:
+                def __init__(self, metadata, page_content):
+                    self.metadata = metadata
+                    self.page_content = page_content
+            context_chunks.append(
+                Chunk(match["metadata"], match["metadata"].get("text", ""))
+            )
+
+        # Import and use the LLM answer generator
+        from services.llm import answer_with_context
+        answer = answer_with_context(query, context_chunks)
 
         return jsonify({
-            "answer": "TODO: Connect LLM for answer generation",
+            "answer": answer,
             "sources": sources
         })
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
