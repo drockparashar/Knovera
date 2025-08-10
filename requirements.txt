@@ -1,2 +1,9 @@
 flask
 python-dotenv
+langchain
+langchain-community
+pinecone
+google-generativeai
+python-docx
+pypdf
+docx2txt
